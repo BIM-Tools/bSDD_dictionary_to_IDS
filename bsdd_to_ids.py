@@ -7,6 +7,7 @@ from collections import defaultdict
 BASE_URL = "https://api.bsdd.buildingsmart.org"
 FETCH_LIMIT = 500
 IFC_VERSIONS = 'IFC4X3_ADD2'  # 'IFC4 IFC4X3_ADD2'
+IFC_VERSIONS_097 = 'IFC4X3'  # 'IFC4 IFC4X3'
 
 DATATYPE_MAPPING = {
     'String': 'IfcLabel',
@@ -98,6 +99,10 @@ BASIC_IFC_ENTITIES = [
 dictionary_map = {}
 classification_map = {}
 
+def get_ifc_versions(ids_version):
+    if ids_version == "0.9.7":
+        return IFC_VERSIONS_097
+    return IFC_VERSIONS
 
 def get_data_type(dataType, propertyUri):
     if propertyUri in PROPERTY_DATATYPE_MAPPING:
@@ -406,9 +411,9 @@ def add_properties(class_properties, parent_element):
             add_property_facet(property, parent_element)
 
 
-def add_global_dictionary_applicability(dictionary_name, specifications):
+def add_global_dictionary_applicability(dictionary_name, specifications, ids_version):
     specification = ET.SubElement(specifications, 'specification')
-    specification.set('ifcVersion', IFC_VERSIONS)
+    specification.set('ifcVersion', get_ifc_versions(ids_version))
     specification.set('name', 'Aanwezigheid ' + dictionary_name)
 
     applicability = ET.SubElement(
@@ -427,14 +432,14 @@ def add_global_dictionary_applicability(dictionary_name, specifications):
         requirements, None, dictionary_name)
 
 
-def add_class_specification(dictionary_name, classification, specifications):
+def add_class_specification(dictionary_name, classification, specifications,ids_version):
     class_details = fetch_class_details(BASE_URL, classification['uri'])
 
     if not class_details:
         return
 
     specification = ET.SubElement(specifications, 'specification')
-    specification.set('ifcVersion', IFC_VERSIONS)
+    specification.set('ifcVersion', get_ifc_versions(ids_version))
     specification.set('name', class_details['name'])
 
     applicability = ET.SubElement(
@@ -454,13 +459,13 @@ def add_class_specification(dictionary_name, classification, specifications):
     add_properties(class_details.get('classProperties', []), requirements)
 
 
-def main(xml_file, dictionary_uri):
+def main(xml_file, dictionary_uri, ids_version):
     dictionary_with_classes = fetch_classes(BASE_URL, dictionary_uri)
 
     root = ET.Element('ids', {
         'xmlns:xs': 'http://www.w3.org/2001/XMLSchema',
         'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
-        'xsi:schemaLocation': 'http://standards.buildingsmart.org/IDS http://standards.buildingsmart.org/IDS/1.0/ids.xsd',
+        'xsi:schemaLocation': f"http://standards.buildingsmart.org/IDS http://standards.buildingsmart.org/IDS/{ids_version}/ids.xsd",
         'xmlns': 'http://standards.buildingsmart.org/IDS'
     })
     info = ET.SubElement(root, 'info')
@@ -469,11 +474,11 @@ def main(xml_file, dictionary_uri):
     specifications = ET.SubElement(root, 'specifications')
 
     add_global_dictionary_applicability(
-        dictionary_with_classes['name'], specifications)
+        dictionary_with_classes['name'], specifications, ids_version)
 
     for classification in dictionary_with_classes['classes']:
         add_class_specification(
-            dictionary_with_classes['name'], classification, specifications)
+            dictionary_with_classes['name'], classification, specifications, ids_version)
 
     # Pretty print the XML
     xml_str = ET.tostring(root, encoding='utf-8', method='xml')
@@ -493,7 +498,10 @@ if __name__ == "__main__":
                         help="The filepath for the IDS file")
     parser.add_argument("dictionary_uri", type=str,
                         help="The URI for the dictionary")
+    parser.add_argument("-v", "--version", type=str, nargs='?', default="1.0",
+                    choices=["1.0", "0.9.7"],
+                    help="The IDS version (default: 1.0)")
 
     args = parser.parse_args()
 
-    main(args.ids_file_path, args.dictionary_uri)
+    main(args.ids_file_path, args.dictionary_uri, args.version)
