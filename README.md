@@ -24,8 +24,8 @@ To convert a bSDD dictionary into an IDS file, follow these steps:
 
 2. **Run the Script**:
    - Ensure Python is installed on your system.
-   - Use the following command, replacing `<ids_file_path>` with your desired output file path and `<dictionary_uri>` with the URI you found: `python bsdd_to_ids.py <ids_file_path> <dictionary_uri>`
-
+   - Use the following command, replacing `<ids_file_path>` with your desired output file path, `<dictionary_uri>` with the URI you found, and optionally specifying the IDS version with `-v` or `--version`:
+     `python bsdd_to_ids.py <ids_file_path> <dictionary_uri> [-v VERSION]`
 
 ### Example Command
 Here is an example command that demonstrates how to run the script:
@@ -35,15 +35,19 @@ python bsdd_to_ids.py basis_bouwproducten_oene.ids https://identifier.buildingsm
 
 ## Help
 ```bash
-usage: bsdd_to_ids.py [-h] ids_file_path dictionary_uri
+usage: bsdd_to_ids.py [-h] ids_file_path dictionary_uri [-v VERSION]
 
 Generate IDS file from bSDD dictionary URI
 
-positional arguments: ids_file_path The filepath for the IDS file dictionary_uri The URI for the dictionary
+positional arguments:
+  ids_file_path         The filepath for the IDS file
+  dictionary_uri        The URI for the dictionary
 
-options: -h, --help show this help message and exit
+options:
+  -h, --help            show this help message and exit
+  -v, --version         The IDS version (default: 1.0). Allowed values: 1.0, 0.9.7
 
-Example command: python bsdd_to_ids.py basis_bouwproducten_oene.ids https://identifier.buildingsmart.org/uri/volkerwesselsbvgo/basis_bouwproducten_oene/latest
+Example command: python bsdd_to_ids.py basis_bouwproducten_oene.ids https://identifier.buildingsmart.org/uri/volkerwesselsbvgo/basis_bouwproducten_oene/latest -v 1.0
 ```
 
 ## Contributing

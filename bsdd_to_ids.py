@@ -99,10 +99,12 @@ BASIC_IFC_ENTITIES = [
 dictionary_map = {}
 classification_map = {}
 
+
 def get_ifc_versions(ids_version):
     if ids_version == "0.9.7":
         return IFC_VERSIONS_097
     return IFC_VERSIONS
+
 
 def get_data_type(dataType, propertyUri):
     if propertyUri in PROPERTY_DATATYPE_MAPPING:
@@ -432,7 +434,7 @@ def add_global_dictionary_applicability(dictionary_name, specifications, ids_ver
         requirements, None, dictionary_name)
 
 
-def add_class_specification(dictionary_name, classification, specifications,ids_version):
+def add_class_specification(dictionary_name, classification, specifications, ids_version):
     class_details = fetch_class_details(BASE_URL, classification['uri'])
 
     if not class_details:
@@ -499,8 +501,8 @@ if __name__ == "__main__":
     parser.add_argument("dictionary_uri", type=str,
                         help="The URI for the dictionary")
     parser.add_argument("-v", "--version", type=str, nargs='?', default="1.0",
-                    choices=["1.0", "0.9.7"],
-                    help="The IDS version (default: 1.0)")
+                        choices=["1.0", "0.9.7"],
+                        help="The IDS version (default: 1.0)")
 
     args = parser.parse_args()
 
