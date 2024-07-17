@@ -1,11 +1,15 @@
 import argparse
+import hashlib
+import json
+import os
 import requests
 import xml.etree.ElementTree as ET
 from xml.dom.minidom import parseString
 from collections import defaultdict
 
+
 BASE_URL = "https://api.bsdd.buildingsmart.org"
-FETCH_LIMIT = 500
+FETCH_LIMIT = 1000
 IFC_VERSIONS = 'IFC4X3_ADD2'  # 'IFC4 IFC4X3_ADD2'
 IFC_VERSIONS_097 = 'IFC4X3'  # 'IFC4 IFC4X3'
 
@@ -100,6 +104,19 @@ dictionary_map = {}
 classification_map = {}
 
 
+def url_to_filename(url):
+    """Hashes a URL string to create a unique filename-safe identifier.
+
+    Args:
+        url (str): The URL string to hash.
+
+    Returns:
+        str: A filename-safe hash of the URL string.
+    """
+    hashed_filename = hashlib.sha256(url.encode('utf-8')).hexdigest()
+    return hashed_filename
+
+
 def get_ifc_versions(ids_version):
     if ids_version == "0.9.7":
         return IFC_VERSIONS_097
@@ -166,9 +183,17 @@ def fetch_all_data(endpoint, params={}):
     return responses
 
 
-def fetch_dictionary(base_url, dictionary_uri):
+def fetch_dictionary(base_url, dictionary_uri, use_cache):
     if dictionary_uri in dictionary_map:
         return dictionary_map[dictionary_uri]
+
+    if use_cache:
+        filename_safe_uri = url_to_filename(dictionary_uri)
+        temp_filename = os.path.join("cache", filename_safe_uri + ".json")
+        if os.path.isfile(temp_filename):
+            with open(temp_filename, "r") as f:
+                return json.load(f)
+
     endpoint = f"{base_url}/api/Dictionary/v1"
     params = {
         "Uri": dictionary_uri,
@@ -180,6 +205,11 @@ def fetch_dictionary(base_url, dictionary_uri):
         return None
     data = response.json()
     dictionaries = data.get("dictionaries", [])
+
+    if use_cache and dictionaries:
+        with open(temp_filename, "w") as f:
+            json.dump(dictionaries[0], f)
+
     if dictionaries:
         return dictionaries[0]
     else:
@@ -226,9 +256,16 @@ def fetch_classes(base_url, class_uri):
     return first_response
 
 
-def fetch_class_details(base_url, class_uri):
+def fetch_class_details(base_url, class_uri, use_cache):
     if class_uri in classification_map:
         return classification_map[class_uri]
+
+    if use_cache:
+        filename_safe_uri = url_to_filename(class_uri)
+        temp_filename = os.path.join("cache", filename_safe_uri + ".json")
+        if os.path.isfile(temp_filename):
+            with open(temp_filename, "r") as f:
+                return json.load(f)
 
     endpoint = f"{base_url}/api/Class/v1"
     params = {
@@ -243,30 +280,30 @@ def fetch_class_details(base_url, class_uri):
         return None
     class_details = response.json()
     classification_map[class_uri] = class_details
+    if use_cache and class_details:
+        with open(temp_filename, "w") as f:
+            json.dump(class_details, f)
     return class_details
 
 
 def create_classification_facet(parent_element, uri_value=None, system_value=None, value_value=None):
-    classification = ET.SubElement(parent_element, 'classification', {
-        'cardinality': 'required',
-        'minOccurs': '1',
-        'maxOccurs': '1'
-    })
+    classification = ET.SubElement(parent_element, 'classification')
 
-    if uri_value:
-        uri = ET.SubElement(classification, 'url')
-        simpleValue = ET.SubElement(uri, 'simpleValue')
-        simpleValue.text = uri_value
-
-    if system_value:
-        system = ET.SubElement(classification, 'system')
-        simpleValue = ET.SubElement(system, 'simpleValue')
-        simpleValue.text = system_value
+    # if uri_value:
+    #     classification.set('uri', uri_value)
+    # classification.set('cardinality', 'required')
+    # classification.set('minOccurs', '1')
+    # classification.set('maxOccurs', '1')
 
     if value_value:
         value = ET.SubElement(classification, 'value')
         simpleValue = ET.SubElement(value, 'simpleValue')
         simpleValue.text = value_value
+
+    if system_value:
+        system = ET.SubElement(classification, 'system')
+        simpleValue = ET.SubElement(system, 'simpleValue')
+        simpleValue.text = system_value
 
 
 def create_classification_facet_with_options(parent_element, base_uri, values, full_uris):
@@ -274,12 +311,7 @@ def create_classification_facet_with_options(parent_element, base_uri, values, f
     full_uris.sort()
 
     classification = ET.SubElement(
-        parent_element, 'classification', cardinality="required", minOccurs="1", maxOccurs="1")
-
-    system = ET.SubElement(classification, 'system')
-    restriction_system = ET.SubElement(
-        system, 'xs:restriction', base='xs:string')
-    ET.SubElement(restriction_system, 'xs:enumeration', value=base_uri)
+        parent_element, 'classification')
 
     value = ET.SubElement(classification, 'value')
     restriction_value = ET.SubElement(
@@ -287,18 +319,23 @@ def create_classification_facet_with_options(parent_element, base_uri, values, f
     for val in values:
         ET.SubElement(restriction_value, 'xs:enumeration', value=val)
 
-    url = ET.SubElement(classification, 'url')
-    restriction_url = ET.SubElement(url, 'xs:restriction', base="xs:string")
-    for uri in full_uris:
-        ET.SubElement(restriction_url, 'xs:enumeration', value=uri)
+    # url = ET.SubElement(classification, 'url')
+    # restriction_url = ET.SubElement(url, 'xs:restriction', base="xs:string")
+    # for uri in full_uris:
+    #     ET.SubElement(restriction_url, 'xs:enumeration', value=uri)
+
+    system = ET.SubElement(classification, 'system')
+    restriction_system = ET.SubElement(
+        system, 'xs:restriction', base='xs:string')
+    ET.SubElement(restriction_system, 'xs:enumeration', value=base_uri)
 
 
-def group_class_relations_by_dictionary(class_relations):
+def group_class_relations_by_dictionary(class_relations, use_cache):
     grouped_relations = defaultdict(list)
     full_uris_by_base = defaultdict(set)
     for relation in class_relations:
         class_uri = relation.get('relatedClassUri', '')
-        classification = fetch_class_details(BASE_URL, class_uri)
+        classification = fetch_class_details(BASE_URL, class_uri, use_cache)
 
         if not classification:
             continue
@@ -310,14 +347,14 @@ def group_class_relations_by_dictionary(class_relations):
     return grouped_relations, full_uris_by_base
 
 
-def add_classification_facets(parent_element, grouped_relations, full_uris_by_base):
+def add_classification_facets(parent_element, grouped_relations, full_uris_by_base, use_cache):
     for dictionary_uri, class_codes in grouped_relations.items():
 
         # Don't include IFC as classification
         if 'https://identifier.buildingsmart.org/uri/buildingsmart/ifc' in dictionary_uri:
             continue
 
-        dictionary = fetch_dictionary(BASE_URL, dictionary_uri)
+        dictionary = fetch_dictionary(BASE_URL, dictionary_uri, use_cache)
         if dictionary:
             system_name = dictionary.get('name')
             if system_name:
@@ -326,11 +363,11 @@ def add_classification_facets(parent_element, grouped_relations, full_uris_by_ba
                     parent_element, system_name, class_codes, full_uris)
 
 
-def add_classification_references(class_relations, parent_element):
+def add_classification_references(class_relations, parent_element, use_cache):
     grouped_relations, full_uris_by_base = group_class_relations_by_dictionary(
-        class_relations)
+        class_relations, use_cache)
     add_classification_facets(
-        parent_element, grouped_relations, full_uris_by_base)
+        parent_element, grouped_relations, full_uris_by_base, use_cache)
 
 
 def add_entity_facet(related_ifc_entities, parent_element):
@@ -434,8 +471,9 @@ def add_global_dictionary_applicability(dictionary_name, specifications, ids_ver
         requirements, None, dictionary_name)
 
 
-def add_class_specification(dictionary_name, classification, specifications, ids_version):
-    class_details = fetch_class_details(BASE_URL, classification['uri'])
+def add_class_specification(dictionary_name, classification, specifications, ids_version, use_cache):
+    class_details = fetch_class_details(
+        BASE_URL, classification['uri'], use_cache)
 
     if not class_details:
         return
@@ -456,12 +494,12 @@ def add_class_specification(dictionary_name, classification, specifications, ids
         'relatedIfcEntityNames', []), requirements)
 
     add_classification_references(
-        class_details.get('classRelations', []), requirements)
+        class_details.get('classRelations', []), requirements, use_cache)
 
     add_properties(class_details.get('classProperties', []), requirements)
 
 
-def main(xml_file, dictionary_uri, ids_version):
+def main(xml_file, dictionary_uri, ids_version, use_cache):
     dictionary_with_classes = fetch_classes(BASE_URL, dictionary_uri)
 
     root = ET.Element('ids', {
@@ -480,7 +518,7 @@ def main(xml_file, dictionary_uri, ids_version):
 
     for classification in dictionary_with_classes['classes']:
         add_class_specification(
-            dictionary_with_classes['name'], classification, specifications, ids_version)
+            dictionary_with_classes['name'], classification, specifications, ids_version, use_cache)
 
     # Pretty print the XML
     xml_str = ET.tostring(root, encoding='utf-8', method='xml')
@@ -503,7 +541,9 @@ if __name__ == "__main__":
     parser.add_argument("-v", "--version", type=str, nargs='?', default="1.0",
                         choices=["1.0", "0.9.7"],
                         help="The IDS version (default: 1.0)")
+    parser.add_argument("-c", "--use_cache", action="store_true", default=False,
+                        help="Use local cache")
 
     args = parser.parse_args()
 
-    main(args.ids_file_path, args.dictionary_uri, args.version)
+    main(args.ids_file_path, args.dictionary_uri, args.version, args.use_cache)
