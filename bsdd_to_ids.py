@@ -6,6 +6,7 @@ import requests
 import xml.etree.ElementTree as ET
 from xml.dom.minidom import parseString
 from collections import defaultdict
+from tqdm import tqdm
 
 
 BASE_URL = "https://api.bsdd.buildingsmart.org"
@@ -516,7 +517,7 @@ def main(xml_file, dictionary_uri, ids_version, use_cache):
     add_global_dictionary_applicability(
         dictionary_with_classes['name'], specifications, ids_version)
 
-    for classification in dictionary_with_classes['classes']:
+    for classification in tqdm(dictionary_with_classes['classes']):
         add_class_specification(
             dictionary_with_classes['name'], classification, specifications, ids_version, use_cache)
 
