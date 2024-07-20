@@ -11,94 +11,94 @@ from tqdm import tqdm
 
 BASE_URL = "https://api.bsdd.buildingsmart.org"
 FETCH_LIMIT = 1000
-IFC_VERSIONS = 'IFC4X3_ADD2'  # 'IFC4 IFC4X3_ADD2'
-IFC_VERSIONS_097 = 'IFC4X3'  # 'IFC4 IFC4X3'
+IFC_VERSIONS = "IFC4X3_ADD2"  # 'IFC4 IFC4X3_ADD2'
+IFC_VERSIONS_097 = "IFC4X3"  # 'IFC4 IFC4X3'
 
 DATATYPE_MAPPING = {
-    'String': 'IfcLabel',
-    'Boolean': 'IfcBoolean',
-    'Integer': 'IfcInteger',
-    'Real': 'IfcReal',
-    'Character': 'IfcLabel',
-    'Time': 'IfcDateTime'
+    "String": "IfcLabel",
+    "Boolean": "IfcBoolean",
+    "Integer": "IfcInteger",
+    "Real": "IfcReal",
+    "Character": "IfcLabel",
+    "Time": "IfcDateTime",
 }
 
 PROPERTY_DATATYPE_MAPPING = {
-    'https://identifier.buildingsmart.org/uri/buildingsmart/ifc/4.3/prop/AcousticRating': 'IfcLabel',
-    'https://identifier.buildingsmart.org/uri/buildingsmart/ifc/4.3/prop/CapacityPeople': 'IfcCountMeasure',
-    'https://identifier.buildingsmart.org/uri/buildingsmart/ifc/4.3/prop/ClearDepth': 'IfcPositiveLengthMeasure',
-    'https://identifier.buildingsmart.org/uri/buildingsmart/ifc/4.3/prop/ClearHeight': 'IfcPositiveLengthMeasure',
-    'https://identifier.buildingsmart.org/uri/buildingsmart/ifc/4.3/prop/ClearWidth': 'IfcPositiveLengthMeasure',
-    'https://identifier.buildingsmart.org/uri/buildingsmart/ifc/4.3/prop/ExposureClass': 'IfcLabel',
-    'https://identifier.buildingsmart.org/uri/buildingsmart/ifc/4.3/prop/FireRating': 'IfcLabel',
-    'https://identifier.buildingsmart.org/uri/buildingsmart/ifc/4.3/prop/Height': 'IfcPositiveLengthMeasure',
-    'https://identifier.buildingsmart.org/uri/buildingsmart/ifc/4.3/prop/ModelReference': 'IfcLabel',
-    'https://identifier.buildingsmart.org/uri/buildingsmart/ifc/4.3/prop/SecurityRating': 'IfcLabel',
-    'https://identifier.buildingsmart.org/uri/buildingsmart/ifc/4.3/prop/StrengthClass': 'IfcLabel',
-    'https://identifier.buildingsmart.org/uri/buildingsmart/ifc/4.3/prop/StructuralClass': 'IfcLabel',
-    'https://identifier.buildingsmart.org/uri/buildingsmart/ifc/4.3/prop/SurfaceSpreadOfFlame': 'IfcLabel',
-    'https://identifier.buildingsmart.org/uri/buildingsmart/ifc/4.3/prop/ThermalTransmittance': 'IfcThermalTransmittanceMeasure',
-    'https://identifier.buildingsmart.org/uri/buildingsmart/ifc/4.3/prop/TileLength': 'IfcPositiveLengthMeasure',
-    'https://identifier.buildingsmart.org/uri/buildingsmart/ifc/4.3/prop/TileWidth': 'IfcPositiveLengthMeasure',
+    "https://identifier.buildingsmart.org/uri/buildingsmart/ifc/4.3/prop/AcousticRating": "IfcLabel",
+    "https://identifier.buildingsmart.org/uri/buildingsmart/ifc/4.3/prop/CapacityPeople": "IfcCountMeasure",
+    "https://identifier.buildingsmart.org/uri/buildingsmart/ifc/4.3/prop/ClearDepth": "IfcPositiveLengthMeasure",
+    "https://identifier.buildingsmart.org/uri/buildingsmart/ifc/4.3/prop/ClearHeight": "IfcPositiveLengthMeasure",
+    "https://identifier.buildingsmart.org/uri/buildingsmart/ifc/4.3/prop/ClearWidth": "IfcPositiveLengthMeasure",
+    "https://identifier.buildingsmart.org/uri/buildingsmart/ifc/4.3/prop/ExposureClass": "IfcLabel",
+    "https://identifier.buildingsmart.org/uri/buildingsmart/ifc/4.3/prop/FireRating": "IfcLabel",
+    "https://identifier.buildingsmart.org/uri/buildingsmart/ifc/4.3/prop/Height": "IfcPositiveLengthMeasure",
+    "https://identifier.buildingsmart.org/uri/buildingsmart/ifc/4.3/prop/ModelReference": "IfcLabel",
+    "https://identifier.buildingsmart.org/uri/buildingsmart/ifc/4.3/prop/SecurityRating": "IfcLabel",
+    "https://identifier.buildingsmart.org/uri/buildingsmart/ifc/4.3/prop/StrengthClass": "IfcLabel",
+    "https://identifier.buildingsmart.org/uri/buildingsmart/ifc/4.3/prop/StructuralClass": "IfcLabel",
+    "https://identifier.buildingsmart.org/uri/buildingsmart/ifc/4.3/prop/SurfaceSpreadOfFlame": "IfcLabel",
+    "https://identifier.buildingsmart.org/uri/buildingsmart/ifc/4.3/prop/ThermalTransmittance": "IfcThermalTransmittanceMeasure",
+    "https://identifier.buildingsmart.org/uri/buildingsmart/ifc/4.3/prop/TileLength": "IfcPositiveLengthMeasure",
+    "https://identifier.buildingsmart.org/uri/buildingsmart/ifc/4.3/prop/TileWidth": "IfcPositiveLengthMeasure",
 }
 
 BASIC_IFC_ENTITIES = [
-    'IfcAirTerminal',
-    'IfcAirTerminalBox',
-    'IfcAirToAirHeatRecovery',
-    'IfcAlarm',
-    'IfcBeam',
-    'IfcBoiler',
-    'IfcBuildingElementProxy',
-    'IfcCableCarrierFitting',
-    'IfcCableCarrierSegment',
-    'IfcCableFitting',
-    'IfcCableSegment',
-    'IfcChimney',
-    'IfcColumn',
-    'IfcComnunicationsAppliance',
-    'IfcCovering',
-    'IfcCurtainWall',
-    'IfcDiscreteAccessory',
-    'IfcDistributionChamberElement',
-    'IfcDoor',
-    'IfcElectricAppliance',
-    'IfcElementAssembly',
-    'IfcEnergyConversionDevice',
-    'IfcFireSuppressionTerminal',
-    'IfcFlowSegment',
-    'IfcFlowStorageDevice',
-    'IfcFlowTerminal',
-    'IfcFooting',
-    'IfcFurniture',
-    'IfcGeographicElement',
-    'IfcMechanicalFastener',
-    'IfcMember',
-    'IfcOutlet',
-    'IfcPile',
-    'IfcPipeFitting',
-    'IfcPipeSegment',
-    'IfcPlate',
-    'IfcRailing',
-    'IfcRamp',
-    'IfcRampFlight',
-    'IfcReinforcingElement',
-    'IfcRoof',
-    'IfcSanitaryTerminal',
-    'IfcSensor',
-    'IfcShadingDevice',
-    'IfcSign',
-    'IfcSignal',
-    'IfcSlab',
-    'IfcSolarDevice',
-    'IfcSpaceHeater',
-    'IfcStair',
-    'IfcStairFlight',
-    'IfcSwitchingDevice',
-    'IfcTransportElement',
-    'IfcVirtualElement',
-    'IfcWall',
-    'IfcWindow'
+    "IfcAirTerminal",
+    "IfcAirTerminalBox",
+    "IfcAirToAirHeatRecovery",
+    "IfcAlarm",
+    "IfcBeam",
+    "IfcBoiler",
+    "IfcBuildingElementProxy",
+    "IfcCableCarrierFitting",
+    "IfcCableCarrierSegment",
+    "IfcCableFitting",
+    "IfcCableSegment",
+    "IfcChimney",
+    "IfcColumn",
+    "IfcComnunicationsAppliance",
+    "IfcCovering",
+    "IfcCurtainWall",
+    "IfcDiscreteAccessory",
+    "IfcDistributionChamberElement",
+    "IfcDoor",
+    "IfcElectricAppliance",
+    "IfcElementAssembly",
+    "IfcEnergyConversionDevice",
+    "IfcFireSuppressionTerminal",
+    "IfcFlowSegment",
+    "IfcFlowStorageDevice",
+    "IfcFlowTerminal",
+    "IfcFooting",
+    "IfcFurniture",
+    "IfcGeographicElement",
+    "IfcMechanicalFastener",
+    "IfcMember",
+    "IfcOutlet",
+    "IfcPile",
+    "IfcPipeFitting",
+    "IfcPipeSegment",
+    "IfcPlate",
+    "IfcRailing",
+    "IfcRamp",
+    "IfcRampFlight",
+    "IfcReinforcingElement",
+    "IfcRoof",
+    "IfcSanitaryTerminal",
+    "IfcSensor",
+    "IfcShadingDevice",
+    "IfcSign",
+    "IfcSignal",
+    "IfcSlab",
+    "IfcSolarDevice",
+    "IfcSpaceHeater",
+    "IfcStair",
+    "IfcStairFlight",
+    "IfcSwitchingDevice",
+    "IfcTransportElement",
+    "IfcVirtualElement",
+    "IfcWall",
+    "IfcWindow",
 ]
 
 dictionary_map = {}
@@ -114,7 +114,7 @@ def url_to_filename(url):
     Returns:
         str: A filename-safe hash of the URL string.
     """
-    hashed_filename = hashlib.sha256(url.encode('utf-8')).hexdigest()
+    hashed_filename = hashlib.sha256(url.encode("utf-8")).hexdigest()
     return hashed_filename
 
 
@@ -127,7 +127,7 @@ def get_ifc_versions(ids_version):
 def get_data_type(dataType, propertyUri):
     if propertyUri in PROPERTY_DATATYPE_MAPPING:
         return PROPERTY_DATATYPE_MAPPING[propertyUri]
-    return DATATYPE_MAPPING.get(dataType, 'IFCLABEL')
+    return DATATYPE_MAPPING.get(dataType, "IFCLABEL")
 
 
 def split_ifc_bsdd_code(item):
@@ -139,7 +139,12 @@ def split_ifc_bsdd_code(item):
     split_index = None
     for i in range(len(item) - 1, 0, -1):
         # Check for transition from lowercase to uppercase among alphabetic characters
-        if item[i].isupper() and item[i].isalpha() and item[i-1].islower() and item[i-1].isalpha():
+        if (
+            item[i].isupper()
+            and item[i].isalpha()
+            and item[i - 1].islower()
+            and item[i - 1].isalpha()
+        ):
             split_index = i
             break
 
@@ -166,17 +171,17 @@ def fetch_all_data(endpoint, params={}):
     responses = []
     offset = 0
     limit = FETCH_LIMIT
-    params['limit'] = limit
+    params["limit"] = limit
 
     while True:
-        params['offset'] = offset
+        params["offset"] = offset
         response = requests.get(endpoint, params=params)
         if response.status_code != 200:
             print(f"Failed to fetch data: {response.status_code}")
             break
         data = response.json()
         responses.append(data)
-        batch_size = len(data.get('results', []))
+        batch_size = len(data.get("results", []))
         if batch_size == 0 or batch_size < limit:
             break
         offset += limit
@@ -196,10 +201,7 @@ def fetch_dictionary(base_url, dictionary_uri, use_cache):
                 return json.load(f)
 
     endpoint = f"{base_url}/api/Dictionary/v1"
-    params = {
-        "Uri": dictionary_uri,
-        "IncludeTestDictionaries": True
-    }
+    params = {"Uri": dictionary_uri, "IncludeTestDictionaries": True}
     response = requests.get(endpoint, params=params)
     if response.status_code != 200:
         print(f"Failed to fetch dictionary: {response.status_code}")
@@ -220,20 +222,17 @@ def fetch_dictionary(base_url, dictionary_uri, use_cache):
 def fetch_classes(base_url, class_uri):
     merged_classes = []
     endpoint = f"{base_url}/api/Dictionary/v1/Classes"
-    params = {
-        'Uri': class_uri,
-        'ClassType': 'Class'
-    }
+    params = {"Uri": class_uri, "ClassType": "Class"}
 
     if params is None:
         params = {}
     all_classes = []
     offset = 0
     limit = FETCH_LIMIT
-    params['limit'] = limit
+    params["limit"] = limit
 
     while True:
-        params['offset'] = offset
+        params["offset"] = offset
         response = requests.get(endpoint, params=params)
         if response.status_code != 200:
             print(f"Failed to fetch data: {response.status_code}")
@@ -241,19 +240,19 @@ def fetch_classes(base_url, class_uri):
         classes = response.json()
         all_classes = all_classes + [classes]
         fetched_count = len(classes)
-        total_count = classes.get('classesTotalCount', 0)
+        total_count = classes.get("classesTotalCount", 0)
         if fetched_count == 0 or (offset + fetched_count) >= total_count:
             break
         offset += limit
 
     first_response = None
     for i, response in enumerate(all_classes):
-        classes = response.get('classes', [])
+        classes = response.get("classes", [])
         merged_classes.extend(classes)
         if i == 0:
             first_response = response
     if first_response:
-        first_response['classes'] = merged_classes
+        first_response["classes"] = merged_classes
     return first_response
 
 
@@ -272,12 +271,11 @@ def fetch_class_details(base_url, class_uri, use_cache):
     params = {
         "Uri": class_uri,
         "IncludeClassProperties": True,
-        "IncludeClassRelations": True
+        "IncludeClassRelations": True,
     }
     response = requests.get(endpoint, params=params)
     if response.status_code != 200:
-        print(
-            f"Failed to fetch class details: {class_uri}, {response.status_code}")
+        print(f"Failed to fetch class details: {class_uri}, {response.status_code}")
         return None
     class_details = response.json()
     classification_map[class_uri] = class_details
@@ -287,8 +285,10 @@ def fetch_class_details(base_url, class_uri, use_cache):
     return class_details
 
 
-def create_classification_facet(parent_element, uri_value=None, system_value=None, value_value=None):
-    classification = ET.SubElement(parent_element, 'classification')
+def create_classification_facet(
+    parent_element, uri_value=None, system_value=None, value_value=None
+):
+    classification = ET.SubElement(parent_element, "classification")
 
     # if uri_value:
     #     classification.set('uri', uri_value)
@@ -297,253 +297,270 @@ def create_classification_facet(parent_element, uri_value=None, system_value=Non
     # classification.set('maxOccurs', '1')
 
     if value_value:
-        value = ET.SubElement(classification, 'value')
-        simpleValue = ET.SubElement(value, 'simpleValue')
+        value = ET.SubElement(classification, "value")
+        simpleValue = ET.SubElement(value, "simpleValue")
         simpleValue.text = value_value
 
     if system_value:
-        system = ET.SubElement(classification, 'system')
-        simpleValue = ET.SubElement(system, 'simpleValue')
+        system = ET.SubElement(classification, "system")
+        simpleValue = ET.SubElement(system, "simpleValue")
         simpleValue.text = system_value
 
 
-def create_classification_facet_with_options(parent_element, base_uri, values, full_uris):
+def create_classification_facet_with_options(
+    parent_element, base_uri, values, full_uris
+):
     values.sort()
     full_uris.sort()
 
-    classification = ET.SubElement(
-        parent_element, 'classification')
+    classification = ET.SubElement(parent_element, "classification")
 
-    value = ET.SubElement(classification, 'value')
-    restriction_value = ET.SubElement(
-        value, 'xs:restriction', base="xs:string")
+    value = ET.SubElement(classification, "value")
+    restriction_value = ET.SubElement(value, "xs:restriction", base="xs:string")
     for val in values:
-        ET.SubElement(restriction_value, 'xs:enumeration', value=val)
+        ET.SubElement(restriction_value, "xs:enumeration", value=val)
 
     # url = ET.SubElement(classification, 'url')
     # restriction_url = ET.SubElement(url, 'xs:restriction', base="xs:string")
     # for uri in full_uris:
     #     ET.SubElement(restriction_url, 'xs:enumeration', value=uri)
 
-    system = ET.SubElement(classification, 'system')
-    restriction_system = ET.SubElement(
-        system, 'xs:restriction', base='xs:string')
-    ET.SubElement(restriction_system, 'xs:enumeration', value=base_uri)
+    system = ET.SubElement(classification, "system")
+    restriction_system = ET.SubElement(system, "xs:restriction", base="xs:string")
+    ET.SubElement(restriction_system, "xs:enumeration", value=base_uri)
 
 
 def group_class_relations_by_dictionary(class_relations, use_cache):
     grouped_relations = defaultdict(list)
     full_uris_by_base = defaultdict(set)
     for relation in class_relations:
-        class_uri = relation.get('relatedClassUri', '')
+        class_uri = relation.get("relatedClassUri", "")
         classification = fetch_class_details(BASE_URL, class_uri, use_cache)
 
         if not classification:
             continue
 
-        dictionary_uri = classification.get('dictionaryUri', '')
-        class_code = classification.get('code', '')
+        dictionary_uri = classification.get("dictionaryUri", "")
+        class_code = classification.get("code", "")
         grouped_relations[dictionary_uri].append(class_code)
         full_uris_by_base[dictionary_uri].add(class_uri)
     return grouped_relations, full_uris_by_base
 
 
-def add_classification_facets(parent_element, grouped_relations, full_uris_by_base, use_cache):
+def add_classification_facets(
+    parent_element, grouped_relations, full_uris_by_base, use_cache
+):
     for dictionary_uri, class_codes in grouped_relations.items():
 
         # Don't include IFC as classification
-        if 'https://identifier.buildingsmart.org/uri/buildingsmart/ifc' in dictionary_uri:
+        if (
+            "https://identifier.buildingsmart.org/uri/buildingsmart/ifc"
+            in dictionary_uri
+        ):
             continue
 
         dictionary = fetch_dictionary(BASE_URL, dictionary_uri, use_cache)
         if dictionary:
-            system_name = dictionary.get('name')
+            system_name = dictionary.get("name")
             if system_name:
                 full_uris = list(full_uris_by_base[dictionary_uri])
                 create_classification_facet_with_options(
-                    parent_element, system_name, class_codes, full_uris)
+                    parent_element, system_name, class_codes, full_uris
+                )
 
 
 def add_classification_references(class_relations, parent_element, use_cache):
     grouped_relations, full_uris_by_base = group_class_relations_by_dictionary(
-        class_relations, use_cache)
+        class_relations, use_cache
+    )
     add_classification_facets(
-        parent_element, grouped_relations, full_uris_by_base, use_cache)
+        parent_element, grouped_relations, full_uris_by_base, use_cache
+    )
 
 
 def add_entity_facet(related_ifc_entities, parent_element):
-    entity_names, predefined_types = split_ifc_bsdd_code_list(
-        related_ifc_entities)
+    entity_names, predefined_types = split_ifc_bsdd_code_list(related_ifc_entities)
 
     if len(entity_names) > 0 or len(predefined_types) > 0:
-        entity = ET.SubElement(parent_element, 'entity')
+        entity = ET.SubElement(parent_element, "entity")
         if len(entity_names) > 0:
-            name = ET.SubElement(entity, 'name')
+            name = ET.SubElement(entity, "name")
             restriction = ET.SubElement(
-                name, 'xs:restriction', attrib={'base': 'xs:string'})
+                name, "xs:restriction", attrib={"base": "xs:string"}
+            )
             for name in entity_names:
-                ET.SubElement(restriction, 'xs:enumeration',
-                              attrib={'value': name})
+                ET.SubElement(restriction, "xs:enumeration", attrib={"value": name})
 
         if len(predefined_types) > 0:
-            name = ET.SubElement(entity, 'predefinedType')
+            name = ET.SubElement(entity, "predefinedType")
             restriction = ET.SubElement(
-                name, 'xs:restriction', attrib={'base': 'xs:string'})
+                name, "xs:restriction", attrib={"base": "xs:string"}
+            )
             for name in predefined_types:
-                ET.SubElement(restriction, 'xs:enumeration',
-                              attrib={'value': name})
+                ET.SubElement(restriction, "xs:enumeration", attrib={"value": name})
 
 
 def add_attribute_facet(property, parent_element):
-    if not property['predefinedValue']:
+    if not property["predefinedValue"]:
         return
 
-    atribute_element = ET.SubElement(parent_element, 'attribute')
-    atribute_name_element = ET.SubElement(atribute_element, 'name')
-    simple_value_element = ET.SubElement(
-        atribute_name_element, 'simpleValue')
-    simple_value_element.text = property['propertyCode']
-    attribute_value_element = ET.SubElement(
-        atribute_element, 'value')
-    simple_value_element = ET.SubElement(
-        attribute_value_element, 'simpleValue')
-    simple_value_element.text = property['predefinedValue']
+    atribute_element = ET.SubElement(parent_element, "attribute")
+    atribute_name_element = ET.SubElement(atribute_element, "name")
+    simple_value_element = ET.SubElement(atribute_name_element, "simpleValue")
+    simple_value_element.text = property["propertyCode"]
+    attribute_value_element = ET.SubElement(atribute_element, "value")
+    simple_value_element = ET.SubElement(attribute_value_element, "simpleValue")
+    simple_value_element.text = property["predefinedValue"]
 
 
 def add_property_facet(property, parent_element):
-    property_element = ET.SubElement(parent_element, 'property')
-    property_element.set('dataType', get_data_type(
-        property['dataType'], property['propertyUri']).upper())
+    property_element = ET.SubElement(parent_element, "property")
+    property_element.set(
+        "dataType", get_data_type(property["dataType"], property["propertyUri"]).upper()
+    )
 
-    if 'propertySet' in property:
-        property_set_element = ET.SubElement(
-            property_element, 'propertySet')
-        simple_value_element = ET.SubElement(
-            property_set_element, 'simpleValue')
-        simple_value_element.text = property['propertySet']
+    if "propertySet" in property:
+        property_set_element = ET.SubElement(property_element, "propertySet")
+        simple_value_element = ET.SubElement(property_set_element, "simpleValue")
+        simple_value_element.text = property["propertySet"]
 
-    base_name_element = ET.SubElement(property_element, 'baseName')
-    property_name_value = ET.SubElement(
-        base_name_element, 'simpleValue')
-    property_name_value.text = property['propertyCode']
+    base_name_element = ET.SubElement(property_element, "baseName")
+    property_name_value = ET.SubElement(base_name_element, "simpleValue")
+    property_name_value.text = property["propertyCode"]
 
-    if 'allowedValues' in property:
-        value_element = ET.SubElement(property_element, 'value')
+    if "allowedValues" in property:
+        value_element = ET.SubElement(property_element, "value")
         xs_restriction = ET.SubElement(
-            value_element, 'xs:restriction', base="xs:string")
-        for allowed_value in property['allowedValues']:
-            ET.SubElement(xs_restriction, 'xs:enumeration',
-                          value=allowed_value['value'])
-    elif 'predefinedValue' in property:
-        value_element = ET.SubElement(property_element, 'value')
-        simple_value_element = ET.SubElement(
-            value_element, 'simpleValue')
-        simple_value_element.text = property['predefinedValue']
+            value_element, "xs:restriction", base="xs:string"
+        )
+        for allowed_value in property["allowedValues"]:
+            ET.SubElement(
+                xs_restriction, "xs:enumeration", value=allowed_value["value"]
+            )
+    elif "predefinedValue" in property:
+        value_element = ET.SubElement(property_element, "value")
+        simple_value_element = ET.SubElement(value_element, "simpleValue")
+        simple_value_element.text = property["predefinedValue"]
 
 
 def add_properties(class_properties, parent_element):
     for property in class_properties:
 
         # Separate IFC entity attributes from properties
-        if property['propertySet'] == 'Attributes':
+        if property["propertySet"] == "Attributes":
             add_attribute_facet(property, parent_element)
         else:
             add_property_facet(property, parent_element)
 
 
 def add_global_dictionary_applicability(dictionary_name, specifications, ids_version):
-    specification = ET.SubElement(specifications, 'specification')
-    specification.set('ifcVersion', get_ifc_versions(ids_version))
-    specification.set('name', 'Aanwezigheid ' + dictionary_name)
+    specification = ET.SubElement(specifications, "specification")
+    specification.set("ifcVersion", get_ifc_versions(ids_version))
+    specification.set("name", "Aanwezigheid " + dictionary_name)
 
     applicability = ET.SubElement(
-        specification, 'applicability', minOccurs="0", maxOccurs="unbounded")
+        specification, "applicability", minOccurs="0", maxOccurs="unbounded"
+    )
 
-    entity = ET.SubElement(applicability, 'entity')
-    name = ET.SubElement(entity, 'name')
-    restriction = ET.SubElement(
-        name, 'xs:restriction', attrib={'base': 'xs:string'})
+    entity = ET.SubElement(applicability, "entity")
+    name = ET.SubElement(entity, "name")
+    restriction = ET.SubElement(name, "xs:restriction", attrib={"base": "xs:string"})
     for entity in BASIC_IFC_ENTITIES:
-        ET.SubElement(restriction, 'xs:enumeration',
-                      attrib={'value': entity.upper()})
+        ET.SubElement(restriction, "xs:enumeration", attrib={"value": entity.upper()})
 
-    requirements = ET.SubElement(specification, 'requirements')
-    create_classification_facet(
-        requirements, None, dictionary_name)
+    requirements = ET.SubElement(specification, "requirements")
+    create_classification_facet(requirements, None, dictionary_name)
 
 
-def add_class_specification(dictionary_name, classification, specifications, ids_version, use_cache):
-    class_details = fetch_class_details(
-        BASE_URL, classification['uri'], use_cache)
+def add_class_specification(
+    dictionary_name, classification, specifications, ids_version, use_cache
+):
+    class_details = fetch_class_details(BASE_URL, classification["uri"], use_cache)
 
     if not class_details:
         return
 
-    specification = ET.SubElement(specifications, 'specification')
-    specification.set('ifcVersion', get_ifc_versions(ids_version))
-    specification.set('name', class_details['name'])
+    specification = ET.SubElement(specifications, "specification")
+    specification.set("ifcVersion", get_ifc_versions(ids_version))
+    specification.set("name", class_details["name"])
 
     applicability = ET.SubElement(
-        specification, 'applicability', minOccurs="0", maxOccurs="unbounded")
+        specification, "applicability", minOccurs="0", maxOccurs="unbounded"
+    )
 
     create_classification_facet(
-        applicability, classification['uri'], dictionary_name, class_details['code'])
+        applicability, classification["uri"], dictionary_name, class_details["code"]
+    )
 
-    requirements = ET.SubElement(specification, 'requirements')
+    requirements = ET.SubElement(specification, "requirements")
 
-    add_entity_facet(class_details.get(
-        'relatedIfcEntityNames', []), requirements)
+    add_entity_facet(class_details.get("relatedIfcEntityNames", []), requirements)
 
     add_classification_references(
-        class_details.get('classRelations', []), requirements, use_cache)
+        class_details.get("classRelations", []), requirements, use_cache
+    )
 
-    add_properties(class_details.get('classProperties', []), requirements)
+    add_properties(class_details.get("classProperties", []), requirements)
 
 
 def main(xml_file, dictionary_uri, ids_version, use_cache):
     dictionary_with_classes = fetch_classes(BASE_URL, dictionary_uri)
 
-    root = ET.Element('ids', {
-        'xmlns:xs': 'http://www.w3.org/2001/XMLSchema',
-        'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
-        'xsi:schemaLocation': f"http://standards.buildingsmart.org/IDS http://standards.buildingsmart.org/IDS/{ids_version}/ids.xsd",
-        'xmlns': 'http://standards.buildingsmart.org/IDS'
-    })
-    info = ET.SubElement(root, 'info')
-    title = ET.SubElement(info, 'title')
-    title.text = dictionary_with_classes['name']
-    specifications = ET.SubElement(root, 'specifications')
+    root = ET.Element(
+        "ids",
+        {
+            "xmlns:xs": "http://www.w3.org/2001/XMLSchema",
+            "xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
+            "xsi:schemaLocation": f"http://standards.buildingsmart.org/IDS http://standards.buildingsmart.org/IDS/{ids_version}/ids.xsd",
+            "xmlns": "http://standards.buildingsmart.org/IDS",
+        },
+    )
+    info = ET.SubElement(root, "info")
+    title = ET.SubElement(info, "title")
+    title.text = dictionary_with_classes["name"]
+    specifications = ET.SubElement(root, "specifications")
 
     add_global_dictionary_applicability(
-        dictionary_with_classes['name'], specifications, ids_version)
+        dictionary_with_classes["name"], specifications, ids_version
+    )
 
-    for classification in tqdm(dictionary_with_classes['classes']):
+    for classification in tqdm(dictionary_with_classes["classes"]):
         add_class_specification(
-            dictionary_with_classes['name'], classification, specifications, ids_version, use_cache)
+            dictionary_with_classes["name"],
+            classification,
+            specifications,
+            ids_version,
+            use_cache,
+        )
 
     # Pretty print the XML
-    xml_str = ET.tostring(root, encoding='utf-8', method='xml')
+    xml_str = ET.tostring(root, encoding="utf-8", method="xml")
     dom = parseString(xml_str)
     xml_str = dom.toprettyxml(indent="  ")
 
-    with open(xml_file, 'w', encoding='utf-8') as file:
+    with open(xml_file, "w", encoding="utf-8") as file:
         file.write(xml_str)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Generate IDS file from bSDD dictionary URI",
-        epilog="Example command: python bsdd_to_ids.py basis_bouwproducten_oene.ids https://identifier.buildingsmart.org/uri/volkerwesselsbvgo/basis_bouwproducten_oene/latest"
+        epilog="Example command: python bsdd_to_ids.py basis_bouwproducten_oene.ids https://identifier.buildingsmart.org/uri/volkerwesselsbvgo/basis_bouwproducten_oene/latest",
     )
-    parser.add_argument("ids_file_path", type=str,
-                        help="The filepath for the IDS file")
-    parser.add_argument("dictionary_uri", type=str,
-                        help="The URI for the dictionary")
-    parser.add_argument("-v", "--version", type=str, nargs='?', default="1.0",
-                        choices=["1.0", "0.9.7"],
-                        help="The IDS version (default: 1.0)")
-    parser.add_argument("-c", "--use_cache", action="store_true", default=False,
-                        help="Use local cache")
+    parser.add_argument("ids_file_path", type=str, help="The filepath for the IDS file")
+    parser.add_argument("dictionary_uri", type=str, help="The URI for the dictionary")
+    parser.add_argument(
+        "-v",
+        "--version",
+        type=str,
+        nargs="?",
+        default="1.0",
+        choices=["1.0", "0.9.7"],
+        help="The IDS version (default: 1.0)",
+    )
+    parser.add_argument(
+        "-c", "--use_cache", action="store_true", default=False, help="Use local cache"
+    )
 
     args = parser.parse_args()
 
