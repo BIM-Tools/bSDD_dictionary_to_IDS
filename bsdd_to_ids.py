@@ -437,9 +437,11 @@ def add_properties(class_properties, parent_element):
             add_property_facet(property, parent_element)
 
 
-def add_global_dictionary_applicability(dictionary_name, ids_document):
+def add_global_dictionary_applicability(dictionary_name, dictionary_uri, ids_document):
     specification = ids.Specification(
-        name=f"Aanwezigheid {dictionary_name}", ifcVersion=IFC_VERSIONS
+        name=f"Presence of {dictionary_name}",
+        ifcVersion=IFC_VERSIONS,
+        description=f"Ensures that all applicable objects in the model have a classification from the '{dictionary_name}' bSDD dictionary: {dictionary_uri}",
     )
 
     name = ids.Restriction(
@@ -459,7 +461,9 @@ def add_class_specification(dictionary_name, dictionary_class, ids_document, use
         return
 
     specification = ids.Specification(
-        name=class_details["name"], ifcVersion=IFC_VERSIONS
+        name=class_details["name"],
+        ifcVersion=IFC_VERSIONS,
+        description=f"Verifies that each object classified as '{class_details['name']}' meets the requirements from the bSDD class: {dictionary_class['uri']}",
     )
 
     # TODO check why uri is not accepted by IfcTester
@@ -499,7 +503,9 @@ def main(xml_file, dictionary_uri, use_cache):
         date=get_date(dictionary_with_classes["lastUpdatedUtc"]),
     )
 
-    add_global_dictionary_applicability(dictionary_with_classes["name"], ids_document)
+    add_global_dictionary_applicability(
+        dictionary_with_classes["name"], dictionary_uri, ids_document
+    )
 
     for classification in tqdm(dictionary_with_classes["classes"]):
         add_class_specification(
