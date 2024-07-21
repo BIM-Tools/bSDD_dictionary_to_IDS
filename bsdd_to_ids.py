@@ -3,16 +3,14 @@ import hashlib
 import json
 import os
 import requests
-import xml.etree.ElementTree as ET
-from xml.dom.minidom import parseString
 from collections import defaultdict
 from tqdm import tqdm
-
+from ifctester import ids, reporter
 
 BASE_URL = "https://api.bsdd.buildingsmart.org"
 FETCH_LIMIT = 1000
+
 IFC_VERSIONS = "IFC4X3_ADD2"  # 'IFC4 IFC4X3_ADD2'
-IFC_VERSIONS_097 = "IFC4X3"  # 'IFC4 IFC4X3'
 
 DATATYPE_MAPPING = {
     "String": "IfcLabel",
@@ -118,12 +116,6 @@ def url_to_filename(url):
     return hashed_filename
 
 
-def get_ifc_versions(ids_version):
-    if ids_version == "0.9.7":
-        return IFC_VERSIONS_097
-    return IFC_VERSIONS
-
-
 def get_data_type(dataType, propertyUri):
     if propertyUri in PROPERTY_DATATYPE_MAPPING:
         return PROPERTY_DATATYPE_MAPPING[propertyUri]
@@ -167,7 +159,7 @@ def split_ifc_bsdd_code_list(entity_nameslist):
     return list(entity_names_set), list(predefined_types_set)
 
 
-def fetch_all_data(endpoint, params={}):
+def fetch_all_paginated(endpoint, params={}):
     responses = []
     offset = 0
     limit = FETCH_LIMIT
@@ -195,7 +187,7 @@ def fetch_dictionary(base_url, dictionary_uri, use_cache):
 
     if use_cache:
         filename_safe_uri = url_to_filename(dictionary_uri)
-        temp_filename = os.path.join("cache", filename_safe_uri + ".json")
+        temp_filename = os.path.join("cache", f"dictionary_{filename_safe_uri}.json")
         if os.path.isfile(temp_filename):
             with open(temp_filename, "r") as f:
                 return json.load(f)
@@ -219,10 +211,20 @@ def fetch_dictionary(base_url, dictionary_uri, use_cache):
         return None
 
 
-def fetch_classes(base_url, class_uri):
+def fetch_classes(base_url, dictionary_uri, use_cache):
+
+    if use_cache:
+        filename_safe_uri = url_to_filename(dictionary_uri)
+        temp_filename = os.path.join(
+            "cache", f"dictionary_classes_{filename_safe_uri}.json"
+        )
+        if os.path.isfile(temp_filename):
+            with open(temp_filename, "r") as f:
+                return json.load(f)
+
     merged_classes = []
     endpoint = f"{base_url}/api/Dictionary/v1/Classes"
-    params = {"Uri": class_uri, "ClassType": "Class"}
+    params = {"Uri": dictionary_uri, "ClassType": "Class"}
 
     if params is None:
         params = {}
@@ -245,15 +247,20 @@ def fetch_classes(base_url, class_uri):
             break
         offset += limit
 
-    first_response = None
+    dictionary_classes = None
     for i, response in enumerate(all_classes):
         classes = response.get("classes", [])
         merged_classes.extend(classes)
         if i == 0:
-            first_response = response
-    if first_response:
-        first_response["classes"] = merged_classes
-    return first_response
+            dictionary_classes = response
+    if dictionary_classes:
+        dictionary_classes["classes"] = merged_classes
+
+    if use_cache and dictionary_classes:
+        with open(temp_filename, "w") as f:
+            json.dump(dictionary_classes, f)
+
+    return dictionary_classes
 
 
 def fetch_class_details(base_url, class_uri, use_cache):
@@ -262,7 +269,7 @@ def fetch_class_details(base_url, class_uri, use_cache):
 
     if use_cache:
         filename_safe_uri = url_to_filename(class_uri)
-        temp_filename = os.path.join("cache", filename_safe_uri + ".json")
+        temp_filename = os.path.join("cache", f"class_{filename_safe_uri}.json")
         if os.path.isfile(temp_filename):
             with open(temp_filename, "r") as f:
                 return json.load(f)
@@ -275,7 +282,7 @@ def fetch_class_details(base_url, class_uri, use_cache):
     }
     response = requests.get(endpoint, params=params)
     if response.status_code != 200:
-        print(f"Failed to fetch class details: {class_uri}, {response.status_code}")
+        print(f"Failed to fetch class: {class_uri}, {response.status_code}")
         return None
     class_details = response.json()
     classification_map[class_uri] = class_details
@@ -285,49 +292,21 @@ def fetch_class_details(base_url, class_uri, use_cache):
     return class_details
 
 
-def create_classification_facet(
-    parent_element, uri_value=None, system_value=None, value_value=None
-):
-    classification = ET.SubElement(parent_element, "classification")
-
-    # if uri_value:
-    #     classification.set('uri', uri_value)
-    # classification.set('cardinality', 'required')
-    # classification.set('minOccurs', '1')
-    # classification.set('maxOccurs', '1')
-
-    if value_value:
-        value = ET.SubElement(classification, "value")
-        simpleValue = ET.SubElement(value, "simpleValue")
-        simpleValue.text = value_value
-
-    if system_value:
-        system = ET.SubElement(classification, "system")
-        simpleValue = ET.SubElement(system, "simpleValue")
-        simpleValue.text = system_value
-
-
 def create_classification_facet_with_options(
     parent_element, base_uri, values, full_uris
 ):
-    values.sort()
-    full_uris.sort()
+    if len(values) == 1:
+        restriction_value = values[0]
+    elif len(values) > 0:
+        values.sort()
+        restriction_value = ids.Restriction(options={"enumeration": values})
 
-    classification = ET.SubElement(parent_element, "classification")
+    uri = None
+    if len(full_uris) == 1:
+        uri = full_uris[0]
 
-    value = ET.SubElement(classification, "value")
-    restriction_value = ET.SubElement(value, "xs:restriction", base="xs:string")
-    for val in values:
-        ET.SubElement(restriction_value, "xs:enumeration", value=val)
-
-    # url = ET.SubElement(classification, 'url')
-    # restriction_url = ET.SubElement(url, 'xs:restriction', base="xs:string")
-    # for uri in full_uris:
-    #     ET.SubElement(restriction_url, 'xs:enumeration', value=uri)
-
-    system = ET.SubElement(classification, "system")
-    restriction_system = ET.SubElement(system, "xs:restriction", base="xs:string")
-    ET.SubElement(restriction_system, "xs:enumeration", value=base_uri)
+    classification = ids.Classification(restriction_value, base_uri, uri)
+    parent_element.append(classification)
 
 
 def group_class_relations_by_dictionary(class_relations, use_cache):
@@ -382,65 +361,54 @@ def add_entity_facet(related_ifc_entities, parent_element):
     entity_names, predefined_types = split_ifc_bsdd_code_list(related_ifc_entities)
 
     if len(entity_names) > 0 or len(predefined_types) > 0:
-        entity = ET.SubElement(parent_element, "entity")
-        if len(entity_names) > 0:
-            name = ET.SubElement(entity, "name")
-            restriction = ET.SubElement(
-                name, "xs:restriction", attrib={"base": "xs:string"}
-            )
-            for name in entity_names:
-                ET.SubElement(restriction, "xs:enumeration", attrib={"value": name})
+        name = None
+        predefined_type = None
 
-        if len(predefined_types) > 0:
-            name = ET.SubElement(entity, "predefinedType")
-            restriction = ET.SubElement(
-                name, "xs:restriction", attrib={"base": "xs:string"}
-            )
-            for name in predefined_types:
-                ET.SubElement(restriction, "xs:enumeration", attrib={"value": name})
+        if len(entity_names) == 1:
+            name = entity_names[0]
+        elif len(entity_names) > 0:
+            name = ids.Restriction(options={"enumeration": entity_names})
+        if len(predefined_types) == 1:
+            predefined_type = predefined_types[0]
+        elif len(predefined_types) > 0:
+            predefined_type = ids.Restriction(options={"enumeration": predefined_types})
+        parent_element.append(ids.Entity(name, predefined_type))
 
 
 def add_attribute_facet(property, parent_element):
     if not property["predefinedValue"]:
         return
 
-    atribute_element = ET.SubElement(parent_element, "attribute")
-    atribute_name_element = ET.SubElement(atribute_element, "name")
-    simple_value_element = ET.SubElement(atribute_name_element, "simpleValue")
-    simple_value_element.text = property["propertyCode"]
-    attribute_value_element = ET.SubElement(atribute_element, "value")
-    simple_value_element = ET.SubElement(attribute_value_element, "simpleValue")
-    simple_value_element.text = property["predefinedValue"]
-
-
-def add_property_facet(property, parent_element):
-    property_element = ET.SubElement(parent_element, "property")
-    property_element.set(
-        "dataType", get_data_type(property["dataType"], property["propertyUri"]).upper()
+    parent_element.append(
+        ids.Attribute(property["propertyCode"], property["predefinedValue"])
     )
 
-    if "propertySet" in property:
-        property_set_element = ET.SubElement(property_element, "propertySet")
-        simple_value_element = ET.SubElement(property_set_element, "simpleValue")
-        simple_value_element.text = property["propertySet"]
 
-    base_name_element = ET.SubElement(property_element, "baseName")
-    property_name_value = ET.SubElement(base_name_element, "simpleValue")
-    property_name_value.text = property["propertyCode"]
+def add_property_facet(bsdd_property, parent_element):
+    required_keys = {"propertySet", "propertyCode"}
+    if not all(key in bsdd_property for key in required_keys):
+        return
 
-    if "allowedValues" in property:
-        value_element = ET.SubElement(property_element, "value")
-        xs_restriction = ET.SubElement(
-            value_element, "xs:restriction", base="xs:string"
+    value = None
+    if "allowedValues" in bsdd_property:
+        value = ids.Restriction(
+            options={
+                "enumeration": list(
+                    map(lambda x: x["value"], bsdd_property["allowedValues"])
+                )
+            }
         )
-        for allowed_value in property["allowedValues"]:
-            ET.SubElement(
-                xs_restriction, "xs:enumeration", value=allowed_value["value"]
-            )
-    elif "predefinedValue" in property:
-        value_element = ET.SubElement(property_element, "value")
-        simple_value_element = ET.SubElement(value_element, "simpleValue")
-        simple_value_element.text = property["predefinedValue"]
+    elif "predefinedValue" in bsdd_property:
+        value = bsdd_property["predefinedValue"]
+
+    property_facet = ids.Property(
+        bsdd_property["propertySet"],
+        bsdd_property["propertyCode"],
+        value,
+        get_data_type(bsdd_property["dataType"], bsdd_property["propertyUri"]).upper(),
+        bsdd_property["propertyUri"],
+    )
+    parent_element.append(property_facet)
 
 
 def add_properties(class_properties, parent_element):
@@ -453,46 +421,40 @@ def add_properties(class_properties, parent_element):
             add_property_facet(property, parent_element)
 
 
-def add_global_dictionary_applicability(dictionary_name, specifications, ids_version):
-    specification = ET.SubElement(specifications, "specification")
-    specification.set("ifcVersion", get_ifc_versions(ids_version))
-    specification.set("name", "Aanwezigheid " + dictionary_name)
-
-    applicability = ET.SubElement(
-        specification, "applicability", minOccurs="0", maxOccurs="unbounded"
+def add_global_dictionary_applicability(dictionary_name, ids_document):
+    specification = ids.Specification(
+        name=f"Aanwezigheid {dictionary_name}", ifcVersion=IFC_VERSIONS
     )
+    # applicability = ET.SubElement(
+    #     specification, "applicability", minOccurs="0", maxOccurs="unbounded"
+    # )
 
-    entity = ET.SubElement(applicability, "entity")
-    name = ET.SubElement(entity, "name")
-    restriction = ET.SubElement(name, "xs:restriction", attrib={"base": "xs:string"})
-    for entity in BASIC_IFC_ENTITIES:
-        ET.SubElement(restriction, "xs:enumeration", attrib={"value": entity.upper()})
+    name = ids.Restriction(
+        options={"enumeration": list(map(lambda x: x.upper(), BASIC_IFC_ENTITIES))}
+    )
+    entity = ids.Entity(name)
+    classification = ids.Classification(system=dictionary_name)
+    specification.requirements.append(classification)
+    specification.applicability.append(entity)
+    ids_document.specifications.append(specification)
 
-    requirements = ET.SubElement(specification, "requirements")
-    create_classification_facet(requirements, None, dictionary_name)
 
-
-def add_class_specification(
-    dictionary_name, classification, specifications, ids_version, use_cache
-):
-    class_details = fetch_class_details(BASE_URL, classification["uri"], use_cache)
+def add_class_specification(dictionary_name, dictionary_class, ids_document, use_cache):
+    class_details = fetch_class_details(BASE_URL, dictionary_class["uri"], use_cache)
 
     if not class_details:
         return
 
-    specification = ET.SubElement(specifications, "specification")
-    specification.set("ifcVersion", get_ifc_versions(ids_version))
-    specification.set("name", class_details["name"])
-
-    applicability = ET.SubElement(
-        specification, "applicability", minOccurs="0", maxOccurs="unbounded"
+    specification = ids.Specification(
+        name=class_details["name"], ifcVersion=IFC_VERSIONS
     )
 
-    create_classification_facet(
-        applicability, classification["uri"], dictionary_name, class_details["code"]
+    classification = ids.Classification(
+        class_details["code"], dictionary_name, dictionary_class["uri"]
     )
+    specification.applicability.append(classification)
 
-    requirements = ET.SubElement(specification, "requirements")
+    requirements = specification.requirements
 
     add_entity_facet(class_details.get("relatedIfcEntityNames", []), requirements)
 
@@ -502,44 +464,38 @@ def add_class_specification(
 
     add_properties(class_details.get("classProperties", []), requirements)
 
+    ids_document.specifications.append(specification)
 
-def main(xml_file, dictionary_uri, ids_version, use_cache):
-    dictionary_with_classes = fetch_classes(BASE_URL, dictionary_uri)
 
-    root = ET.Element(
-        "ids",
-        {
-            "xmlns:xs": "http://www.w3.org/2001/XMLSchema",
-            "xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
-            "xsi:schemaLocation": f"http://standards.buildingsmart.org/IDS http://standards.buildingsmart.org/IDS/{ids_version}/ids.xsd",
-            "xmlns": "http://standards.buildingsmart.org/IDS",
-        },
+def get_date(date_time_string):
+    if date_time_string:
+        return date_time_string.split("T")[0]
+    else:
+        return None
+
+
+def main(xml_file, dictionary_uri, use_cache):
+    dictionary_with_classes = fetch_classes(BASE_URL, dictionary_uri, use_cache)
+
+    ids_document = ids.Ids(
+        title=dictionary_with_classes["name"],
+        copyright=dictionary_with_classes["organizationNameOwner"],
+        version=dictionary_with_classes["version"],
+        description=f'IDS for bSDD dictionary {dictionary_with_classes["name"]}',
+        date=get_date(dictionary_with_classes["lastUpdatedUtc"]),
     )
-    info = ET.SubElement(root, "info")
-    title = ET.SubElement(info, "title")
-    title.text = dictionary_with_classes["name"]
-    specifications = ET.SubElement(root, "specifications")
 
-    add_global_dictionary_applicability(
-        dictionary_with_classes["name"], specifications, ids_version
-    )
+    add_global_dictionary_applicability(dictionary_with_classes["name"], ids_document)
 
     for classification in tqdm(dictionary_with_classes["classes"]):
         add_class_specification(
             dictionary_with_classes["name"],
             classification,
-            specifications,
-            ids_version,
+            ids_document,
             use_cache,
         )
 
-    # Pretty print the XML
-    xml_str = ET.tostring(root, encoding="utf-8", method="xml")
-    dom = parseString(xml_str)
-    xml_str = dom.toprettyxml(indent="  ")
-
-    with open(xml_file, "w", encoding="utf-8") as file:
-        file.write(xml_str)
+    ids_document.to_xml(xml_file)
 
 
 if __name__ == "__main__":
@@ -550,18 +506,9 @@ if __name__ == "__main__":
     parser.add_argument("ids_file_path", type=str, help="The filepath for the IDS file")
     parser.add_argument("dictionary_uri", type=str, help="The URI for the dictionary")
     parser.add_argument(
-        "-v",
-        "--version",
-        type=str,
-        nargs="?",
-        default="1.0",
-        choices=["1.0", "0.9.7"],
-        help="The IDS version (default: 1.0)",
-    )
-    parser.add_argument(
         "-c", "--use_cache", action="store_true", default=False, help="Use local cache"
     )
 
     args = parser.parse_args()
 
-    main(args.ids_file_path, args.dictionary_uri, args.version, args.use_cache)
+    main(args.ids_file_path, args.dictionary_uri, args.use_cache)
