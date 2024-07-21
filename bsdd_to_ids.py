@@ -12,6 +12,17 @@ FETCH_LIMIT = 1000
 
 IFC_VERSIONS = "IFC4X3_ADD2"  # 'IFC4 IFC4X3_ADD2'
 
+INCLUDEDRELATIONTYPES = [
+    "HasMaterial",
+    # "HasReference",
+    "IsEqualTo",
+    # "IsSimilarTo",
+    # "IsParentOf",
+    "IsChildOf",
+    # "HasPart",
+    "IsPartOf",
+]
+
 DATATYPE_MAPPING = {
     "String": "IfcLabel",
     "Boolean": "IfcBoolean",
@@ -313,9 +324,13 @@ def group_class_relations_by_dictionary(class_relations, use_cache):
     grouped_relations = defaultdict(list)
     full_uris_by_base = defaultdict(set)
     for relation in class_relations:
-        class_uri = relation.get("relatedClassUri", "")
-        classification = fetch_class_details(BASE_URL, class_uri, use_cache)
+        if relation.get("RelationType") not in INCLUDEDRELATIONTYPES:
+            continue
+        class_uri = relation.get("relatedClassUri")
+        if not class_uri:
+            continue
 
+        classification = fetch_class_details(BASE_URL, class_uri, use_cache)
         if not classification:
             continue
 
@@ -323,6 +338,7 @@ def group_class_relations_by_dictionary(class_relations, use_cache):
         class_code = classification.get("code", "")
         grouped_relations[dictionary_uri].append(class_code)
         full_uris_by_base[dictionary_uri].add(class_uri)
+
     return grouped_relations, full_uris_by_base
 
 
@@ -425,9 +441,6 @@ def add_global_dictionary_applicability(dictionary_name, ids_document):
     specification = ids.Specification(
         name=f"Aanwezigheid {dictionary_name}", ifcVersion=IFC_VERSIONS
     )
-    # applicability = ET.SubElement(
-    #     specification, "applicability", minOccurs="0", maxOccurs="unbounded"
-    # )
 
     name = ids.Restriction(
         options={"enumeration": list(map(lambda x: x.upper(), BASIC_IFC_ENTITIES))}
@@ -449,8 +462,9 @@ def add_class_specification(dictionary_name, dictionary_class, ids_document, use
         name=class_details["name"], ifcVersion=IFC_VERSIONS
     )
 
+    # TODO check why uri is not accepted by IfcTester
     classification = ids.Classification(
-        class_details["code"], dictionary_name, dictionary_class["uri"]
+        value=class_details["code"], system=dictionary_name, uri=dictionary_class["uri"]
     )
     specification.applicability.append(classification)
 
