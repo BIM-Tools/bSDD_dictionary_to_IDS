@@ -30,7 +30,7 @@ To convert a bSDD dictionary into an IDS file, follow these steps:
 
 2. **Run the Script**:
    - Ensure Python is installed on your system.
-   - Use the following command, replacing `<ids_file_path>` with your desired output file path, `<dictionary_uri>` with the URI you found, and optionally specifying the IDS version with `-v` or `--version`, another option is to add a comma seperated list of applicable IFC entities:
+   - Use the following command, replacing `<ids_file_path>` with your desired output file path, `<dictionary_uri>` with the URI you found, and optionally specifying the IDS version with `-v` or `--version`, another option is to add a comma separated list of applicable IFC entities:
      `python bsdd_to_ids.py <ids_file_path> <dictionary_uri> [-v VERSION]`
 
 ### Example Command
