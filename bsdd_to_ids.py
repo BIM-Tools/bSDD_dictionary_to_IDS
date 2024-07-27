@@ -492,7 +492,28 @@ def get_date(date_time_string):
         return None
 
 
-def main(xml_file, dictionary_uri, use_cache):
+def convert_to_version_097(ids_document):
+    ids_document.info["version"] = "0.9.7"
+    ids_string = ids_document.to_string()
+    ids_string = ids_string.replace(
+        "http://standards.buildingsmart.org/IDS http://standards.buildingsmart.org/IDS/1.0/ids.xsd",
+        "http://standards.buildingsmart.org/IDS http://standards.buildingsmart.org/IDS/0.9.7/ids.xsd",
+    )
+    ids_string = ids_string.replace(
+        "IFC4X3_ADD2",
+        "IFC4X3",
+    )
+    return ids_string
+
+
+def to_xml(xml_string, filepath):
+    with open(filepath, "wb") as f:
+        f.write(
+            f"<?xml version='1.0' encoding='utf-8'?>\n{xml_string}\n".encode("utf-8")
+        )
+
+
+def main(xml_file, dictionary_uri, ids_version, use_cache):
     dictionary_with_classes = fetch_classes(BASE_URL, dictionary_uri, use_cache)
 
     ids_document = ids.Ids(
@@ -515,7 +536,11 @@ def main(xml_file, dictionary_uri, use_cache):
             use_cache,
         )
 
-    ids_document.to_xml(xml_file)
+    if ids_version == "0.9.7":
+        to_xml(convert_to_version_097(ids_document), xml_file)
+
+    else:
+        ids_document.to_xml(xml_file)
 
 
 if __name__ == "__main__":
@@ -526,9 +551,18 @@ if __name__ == "__main__":
     parser.add_argument("ids_file_path", type=str, help="The filepath for the IDS file")
     parser.add_argument("dictionary_uri", type=str, help="The URI for the dictionary")
     parser.add_argument(
+        "-v",
+        "--version",
+        type=str,
+        nargs="?",
+        default="1.0",
+        choices=["1.0", "0.9.7"],
+        help="The IDS version (default: 1.0)",
+    )
+    parser.add_argument(
         "-c", "--use_cache", action="store_true", default=False, help="Use local cache"
     )
 
     args = parser.parse_args()
 
-    main(args.ids_file_path, args.dictionary_uri, args.use_cache)
+    main(args.ids_file_path, args.dictionary_uri, args.version, args.use_cache)

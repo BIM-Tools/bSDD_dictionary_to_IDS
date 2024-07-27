@@ -38,13 +38,13 @@ To convert a bSDD dictionary into an IDS file, follow these steps:
 Here is an example command that demonstrates how to run the script:
 
 ```bash
-python bsdd_to_ids.py basis_bouwproducten_oene.ids https://identifier.buildingsmart.org/uri/volkerwesselsbvgo/basis_bouwproducten_oene/latest
+python bsdd_to_ids.py basis_bouwproducten_oene.ids https://identifier.buildingsmart.org/uri/volkerwesselsbvgo/basis_bouwproducten_oene/latest -v 1.0
 ```
 
 ## Help
 
 ```bash
-usage: bsdd_to_ids.py [-h] ids_file_path dictionary_uri [-v VERSION]
+usage: bsdd_to_ids.py [-h] [-v [{1.0,0.9.7}]] [-c] ids_file_path dictionary_uri
 
 Generate IDS file from bSDD dictionary URI
 
@@ -54,8 +54,11 @@ positional arguments:
 
 options:
   -h, --help            show this help message and exit
+  -v [{1.0,0.9.7}], --version [{1.0,0.9.7}]
+                        The IDS version (default: 1.0)
+  -c, --use_cache       Use local cache
 
-Example command: python bsdd_to_ids.py basis_bouwproducten_oene.ids https://identifier.buildingsmart.org/uri/volkerwesselsbvgo/basis_bouwproducten_oene/latest -v 1.0
+Example command: python bsdd_to_ids.py basis_bouwproducten_oene.ids https://identifier.buildingsmart.org/uri/volkerwesselsbvgo/basis_bouwproducten_oene/latest
 ```
 
 ## Contributing
