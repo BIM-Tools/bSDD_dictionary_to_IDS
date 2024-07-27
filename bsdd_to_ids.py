@@ -346,6 +346,13 @@ def group_class_relations_by_dictionary(class_relations, use_cache):
     return grouped_relations, full_uris_by_base
 
 
+def get_ifc_entities(ifc_entities):
+    if ifc_entities:
+        return [entity.strip() for entity in ifc_entities.split(",") if entity.strip()]
+    else:
+        return BASIC_IFC_ENTITIES
+
+
 def add_classification_facets(
     parent_element, grouped_relations, full_uris_by_base, use_cache
 ):
@@ -441,7 +448,9 @@ def add_properties(class_properties, parent_element):
             add_property_facet(property, parent_element)
 
 
-def add_global_dictionary_applicability(dictionary_name, dictionary_uri, ids_document):
+def add_global_dictionary_applicability(
+    dictionary_name, dictionary_uri, ids_document, ifc_entities
+):
     specification = ids.Specification(
         name=f"Presence of {dictionary_name}",
         ifcVersion=IFC_VERSIONS,
@@ -449,7 +458,11 @@ def add_global_dictionary_applicability(dictionary_name, dictionary_uri, ids_doc
     )
 
     name = ids.Restriction(
-        options={"enumeration": list(map(lambda x: x.upper(), BASIC_IFC_ENTITIES))}
+        options={
+            "enumeration": list(
+                map(lambda x: x.upper(), get_ifc_entities(ifc_entities))
+            )
+        }
     )
     entity = ids.Entity(name)
     classification = ids.Classification(system=dictionary_name)
@@ -515,7 +528,7 @@ def to_xml(xml_string, filepath):
         )
 
 
-def main(xml_file, dictionary_uri, ids_version, use_cache):
+def main(xml_file, dictionary_uri, ids_version, ifc_entities, use_cache):
     dictionary_with_classes = fetch_classes(BASE_URL, dictionary_uri, use_cache)
 
     ids_document = ids.Ids(
@@ -527,7 +540,7 @@ def main(xml_file, dictionary_uri, ids_version, use_cache):
     )
 
     add_global_dictionary_applicability(
-        dictionary_with_classes["name"], dictionary_uri, ids_document
+        dictionary_with_classes["name"], dictionary_uri, ids_document, ifc_entities
     )
 
     for classification in tqdm(dictionary_with_classes["classes"]):
@@ -562,10 +575,17 @@ if __name__ == "__main__":
         choices=["1.0", "0.9.7"],
         help="The IDS version (default: 1.0)",
     )
+    parser.add_argument("-i", "--ifc_entities", help="Applicable IFC entities")
     parser.add_argument(
         "-c", "--use_cache", action="store_true", default=False, help="Use local cache"
     )
 
     args = parser.parse_args()
 
-    main(args.ids_file_path, args.dictionary_uri, args.version, args.use_cache)
+    main(
+        args.ids_file_path,
+        args.dictionary_uri,
+        args.version,
+        args.ifc_entities,
+        args.use_cache,
+    )
