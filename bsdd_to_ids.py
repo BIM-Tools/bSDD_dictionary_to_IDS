@@ -7,6 +7,8 @@ from collections import defaultdict
 from tqdm import tqdm
 from ifctester import ids, reporter
 
+APP_VERSION = "1.0"
+
 BASE_URL = "https://api.bsdd.buildingsmart.org"
 FETCH_LIMIT = 1000
 
@@ -110,6 +112,8 @@ BASIC_IFC_ENTITIES = [
     "IfcWindow",
 ]
 
+REQUEST_HEADERS = {"User-Agent": f"bSDD_dictionary_to_IDS/{APP_VERSION}"}
+
 dictionary_map = {}
 classification_map = {}
 
@@ -178,7 +182,7 @@ def fetch_all_paginated(endpoint, params={}):
 
     while True:
         params["offset"] = offset
-        response = requests.get(endpoint, params=params)
+        response = requests.get(endpoint, params=params, headers=REQUEST_HEADERS)
         if response.status_code != 200:
             print(f"Failed to fetch data: {response.status_code}")
             break
@@ -205,7 +209,7 @@ def fetch_dictionary(base_url, dictionary_uri, use_cache):
 
     endpoint = f"{base_url}/api/Dictionary/v1"
     params = {"Uri": dictionary_uri, "IncludeTestDictionaries": True}
-    response = requests.get(endpoint, params=params)
+    response = requests.get(endpoint, params=params, headers=REQUEST_HEADERS)
     if response.status_code != 200:
         print(f"Failed to fetch dictionary: {response.status_code}")
         return None
@@ -246,7 +250,7 @@ def fetch_classes(base_url, dictionary_uri, use_cache):
 
     while True:
         params["offset"] = offset
-        response = requests.get(endpoint, params=params)
+        response = requests.get(endpoint, params=params, headers=REQUEST_HEADERS)
         if response.status_code != 200:
             print(f"Failed to fetch data: {response.status_code}")
             break
@@ -291,7 +295,7 @@ def fetch_class_details(base_url, class_uri, use_cache):
         "IncludeClassProperties": True,
         "IncludeClassRelations": True,
     }
-    response = requests.get(endpoint, params=params)
+    response = requests.get(endpoint, params=params, headers=REQUEST_HEADERS)
     if response.status_code != 200:
         print(f"Failed to fetch class: {class_uri}, {response.status_code}")
         return None
