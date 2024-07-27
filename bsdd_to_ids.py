@@ -492,9 +492,7 @@ def get_date(date_time_string):
         return None
 
 
-def convert_to_version_097(ids_document):
-    ids_document.info["version"] = "0.9.7"
-    ids_string = ids_document.to_string()
+def convert_to_version_097(ids_string):
     ids_string = ids_string.replace(
         "http://standards.buildingsmart.org/IDS http://standards.buildingsmart.org/IDS/1.0/ids.xsd",
         "http://standards.buildingsmart.org/IDS http://standards.buildingsmart.org/IDS/0.9.7/ids.xsd",
@@ -537,7 +535,8 @@ def main(xml_file, dictionary_uri, ids_version, use_cache):
         )
 
     if ids_version == "0.9.7":
-        to_xml(convert_to_version_097(ids_document), xml_file)
+        ids_string = ids_document.to_string()
+        to_xml(convert_to_version_097(ids_string), xml_file)
 
     else:
         ids_document.to_xml(xml_file)
