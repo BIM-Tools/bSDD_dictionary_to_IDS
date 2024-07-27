@@ -1,0 +1,211 @@
+<?xml version='1.0' encoding='utf-8'?>
+<ids xmlns="http://standards.buildingsmart.org/IDS" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://standards.buildingsmart.org/IDS http://standards.buildingsmart.org/IDS/1.0/ids.xsd">
+    <info>
+        <title>Fruit and vegetables</title>
+        <copyright>bSDD Agri demo company</copyright>
+        <version>1.1</version>
+        <description>IDS for bSDD dictionary Fruit and vegetables</description>
+        <date>2024-06-28</date>
+    </info>
+    <specifications>
+        <specification name="Presence of Fruit and vegetables" ifcVersion="IFC4X3_ADD2" description="Ensures that all applicable objects in the model have a classification from the 'Fruit and vegetables' bSDD dictionary: https://identifier.buildingsmart.org/uri/bs-agri/fruitvegs/1.1">
+            <applicability minOccurs="0" maxOccurs="unbounded">
+                <entity>
+                    <name>
+                        <xs:restriction base="xs:string">
+                            <xs:enumeration value="IFCAIRTERMINAL" />
+                            <xs:enumeration value="IFCAIRTERMINALBOX" />
+                            <xs:enumeration value="IFCAIRTOAIRHEATRECOVERY" />
+                            <xs:enumeration value="IFCALARM" />
+                            <xs:enumeration value="IFCBEAM" />
+                            <xs:enumeration value="IFCBOILER" />
+                            <xs:enumeration value="IFCBUILDINGELEMENTPROXY" />
+                            <xs:enumeration value="IFCCABLECARRIERFITTING" />
+                            <xs:enumeration value="IFCCABLECARRIERSEGMENT" />
+                            <xs:enumeration value="IFCCABLEFITTING" />
+                            <xs:enumeration value="IFCCABLESEGMENT" />
+                            <xs:enumeration value="IFCCHIMNEY" />
+                            <xs:enumeration value="IFCCOLUMN" />
+                            <xs:enumeration value="IFCCOMNUNICATIONSAPPLIANCE" />
+                            <xs:enumeration value="IFCCOVERING" />
+                            <xs:enumeration value="IFCCURTAINWALL" />
+                            <xs:enumeration value="IFCDISCRETEACCESSORY" />
+                            <xs:enumeration value="IFCDISTRIBUTIONCHAMBERELEMENT" />
+                            <xs:enumeration value="IFCDOOR" />
+                            <xs:enumeration value="IFCELECTRICAPPLIANCE" />
+                            <xs:enumeration value="IFCELEMENTASSEMBLY" />
+                            <xs:enumeration value="IFCENERGYCONVERSIONDEVICE" />
+                            <xs:enumeration value="IFCFIRESUPPRESSIONTERMINAL" />
+                            <xs:enumeration value="IFCFLOWSEGMENT" />
+                            <xs:enumeration value="IFCFLOWSTORAGEDEVICE" />
+                            <xs:enumeration value="IFCFLOWTERMINAL" />
+                            <xs:enumeration value="IFCFOOTING" />
+                            <xs:enumeration value="IFCFURNITURE" />
+                            <xs:enumeration value="IFCGEOGRAPHICELEMENT" />
+                            <xs:enumeration value="IFCMECHANICALFASTENER" />
+                            <xs:enumeration value="IFCMEMBER" />
+                            <xs:enumeration value="IFCOUTLET" />
+                            <xs:enumeration value="IFCPILE" />
+                            <xs:enumeration value="IFCPIPEFITTING" />
+                            <xs:enumeration value="IFCPIPESEGMENT" />
+                            <xs:enumeration value="IFCPLATE" />
+                            <xs:enumeration value="IFCRAILING" />
+                            <xs:enumeration value="IFCRAMP" />
+                            <xs:enumeration value="IFCRAMPFLIGHT" />
+                            <xs:enumeration value="IFCREINFORCINGELEMENT" />
+                            <xs:enumeration value="IFCROOF" />
+                            <xs:enumeration value="IFCSANITARYTERMINAL" />
+                            <xs:enumeration value="IFCSENSOR" />
+                            <xs:enumeration value="IFCSHADINGDEVICE" />
+                            <xs:enumeration value="IFCSIGN" />
+                            <xs:enumeration value="IFCSIGNAL" />
+                            <xs:enumeration value="IFCSLAB" />
+                            <xs:enumeration value="IFCSOLARDEVICE" />
+                            <xs:enumeration value="IFCSPACEHEATER" />
+                            <xs:enumeration value="IFCSTAIR" />
+                            <xs:enumeration value="IFCSTAIRFLIGHT" />
+                            <xs:enumeration value="IFCSWITCHINGDEVICE" />
+                            <xs:enumeration value="IFCTRANSPORTELEMENT" />
+                            <xs:enumeration value="IFCVIRTUALELEMENT" />
+                            <xs:enumeration value="IFCWALL" />
+                            <xs:enumeration value="IFCWINDOW" />
+                        </xs:restriction>
+                    </name>
+                </entity>
+            </applicability>
+            <requirements>
+                <classification cardinality="required">
+                    <system>
+                        <simpleValue>Fruit and vegetables</simpleValue>
+                    </system>
+                </classification>
+            </requirements>
+        </specification>
+        <specification name="Apple" ifcVersion="IFC4X3_ADD2" description="Verifies that each object classified as 'Apple' meets the requirements from the bSDD class: https://identifier.buildingsmart.org/uri/bs-agri/fruitvegs/1.1/class/apple">
+            <applicability minOccurs="0" maxOccurs="unbounded">
+                <classification>
+                    <value>
+                        <simpleValue>apple</simpleValue>
+                    </value>
+                    <system>
+                        <simpleValue>Fruit and vegetables</simpleValue>
+                    </system>
+                </classification>
+            </applicability>
+            <requirements>
+                <entity>
+                    <name>
+                        <simpleValue>IFCCOMMUNICATIONSAPPLIANCE</simpleValue>
+                    </name>
+                </entity>
+                <property dataType="IFCREAL" uri="https://identifier.buildingsmart.org/uri/bs-agri/fruitvegs/1.1/prop/volume" cardinality="required">
+                    <propertySet>
+                        <simpleValue>SizeSet</simpleValue>
+                    </propertySet>
+                    <baseName>
+                        <simpleValue>volume</simpleValue>
+                    </baseName>
+                </property>
+                <property dataType="IFCREAL" uri="https://identifier.buildingsmart.org/uri/bs-agri/fruitvegs/1.1/prop/height" cardinality="required">
+                    <propertySet>
+                        <simpleValue>SizeSet</simpleValue>
+                    </propertySet>
+                    <baseName>
+                        <simpleValue>height</simpleValue>
+                    </baseName>
+                </property>
+            </requirements>
+        </specification>
+        <specification name="Fruit" ifcVersion="IFC4X3_ADD2" description="Verifies that each object classified as 'Fruit' meets the requirements from the bSDD class: https://identifier.buildingsmart.org/uri/bs-agri/fruitvegs/1.1/class/fruit">
+            <applicability minOccurs="0" maxOccurs="unbounded">
+                <classification>
+                    <value>
+                        <simpleValue>fruit</simpleValue>
+                    </value>
+                    <system>
+                        <simpleValue>Fruit and vegetables</simpleValue>
+                    </system>
+                </classification>
+            </applicability>
+            <requirements />
+        </specification>
+        <specification name="Granny Smith" ifcVersion="IFC4X3_ADD2" description="Verifies that each object classified as 'Granny Smith' meets the requirements from the bSDD class: https://identifier.buildingsmart.org/uri/bs-agri/fruitvegs/1.1/class/grannysmith">
+            <applicability minOccurs="0" maxOccurs="unbounded">
+                <classification>
+                    <value>
+                        <simpleValue>grannysmith</simpleValue>
+                    </value>
+                    <system>
+                        <simpleValue>Fruit and vegetables</simpleValue>
+                    </system>
+                </classification>
+            </applicability>
+            <requirements>
+                <property dataType="IFCLABEL" uri="https://identifier.buildingsmart.org/uri/bs-agri/fruitvegs/1.1/prop/color" cardinality="required">
+                    <propertySet>
+                        <simpleValue>undefined_set</simpleValue>
+                    </propertySet>
+                    <baseName>
+                        <simpleValue>color</simpleValue>
+                    </baseName>
+                    <value>
+                        <xs:restriction base="xs:string">
+                            <xs:enumeration value="Green" />
+                            <xs:enumeration value="Yellow" />
+                        </xs:restriction>
+                    </value>
+                </property>
+                <property dataType="IFCREAL" uri="https://identifier.buildingsmart.org/uri/bs-agri/fruitvegs/1.1/prop/height" cardinality="required">
+                    <propertySet>
+                        <simpleValue>SizeSet</simpleValue>
+                    </propertySet>
+                    <baseName>
+                        <simpleValue>height</simpleValue>
+                    </baseName>
+                </property>
+            </requirements>
+        </specification>
+        <specification name="Tomato" ifcVersion="IFC4X3_ADD2" description="Verifies that each object classified as 'Tomato' meets the requirements from the bSDD class: https://identifier.buildingsmart.org/uri/bs-agri/fruitvegs/1.1/class/tomato">
+            <applicability minOccurs="0" maxOccurs="unbounded">
+                <classification>
+                    <value>
+                        <simpleValue>tomato</simpleValue>
+                    </value>
+                    <system>
+                        <simpleValue>Fruit and vegetables</simpleValue>
+                    </system>
+                </classification>
+            </applicability>
+            <requirements>
+                <property dataType="IFCLABEL" uri="https://identifier.buildingsmart.org/uri/bs-agri/fruitvegs/1.1/prop/color" cardinality="required">
+                    <propertySet>
+                        <simpleValue>undefined_set</simpleValue>
+                    </propertySet>
+                    <baseName>
+                        <simpleValue>color</simpleValue>
+                    </baseName>
+                    <value>
+                        <xs:restriction base="xs:string">
+                            <xs:enumeration value="Green" />
+                            <xs:enumeration value="Yellow" />
+                            <xs:enumeration value="Red" />
+                        </xs:restriction>
+                    </value>
+                </property>
+            </requirements>
+        </specification>
+        <specification name="Vegetable" ifcVersion="IFC4X3_ADD2" description="Verifies that each object classified as 'Vegetable' meets the requirements from the bSDD class: https://identifier.buildingsmart.org/uri/bs-agri/fruitvegs/1.1/class/veg">
+            <applicability minOccurs="0" maxOccurs="unbounded">
+                <classification>
+                    <value>
+                        <simpleValue>veg</simpleValue>
+                    </value>
+                    <system>
+                        <simpleValue>Fruit and vegetables</simpleValue>
+                    </system>
+                </classification>
+            </applicability>
+            <requirements />
+        </specification>
+    </specifications>
+</ids>
