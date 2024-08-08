@@ -11,6 +11,7 @@ APP_VERSION = "1.0"
 
 BASE_URL = "https://api.bsdd.buildingsmart.org"
 FETCH_LIMIT = 1000
+CACHE_DIR = "cache"
 
 IFC_VERSIONS = "IFC4X3_ADD2"  # 'IFC4 IFC4X3_ADD2'
 
@@ -202,7 +203,7 @@ def fetch_dictionary(base_url, dictionary_uri, use_cache):
 
     if use_cache:
         filename_safe_uri = url_to_filename(dictionary_uri)
-        temp_filename = os.path.join("cache", f"dictionary_{filename_safe_uri}.json")
+        temp_filename = os.path.join(CACHE_DIR, f"dictionary_{filename_safe_uri}.json")
         if os.path.isfile(temp_filename):
             with open(temp_filename, "r") as f:
                 return json.load(f)
@@ -529,6 +530,10 @@ def to_xml(xml_string, filepath):
 
 
 def main(xml_file, dictionary_uri, ids_version, ifc_entities, use_cache):
+
+    if use_cache:
+        os.makedirs(CACHE_DIR, exist_ok=True)
+        
     dictionary_with_classes = fetch_classes(BASE_URL, dictionary_uri, use_cache)
 
     ids_document = ids.Ids(
