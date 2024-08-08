@@ -403,7 +403,7 @@ def add_entity_facet(related_ifc_entities, parent_element):
 
 
 def add_attribute_facet(property, parent_element):
-    if not property["predefinedValue"]:
+    if not property.get("predefinedValue"):
         return
 
     parent_element.append(
